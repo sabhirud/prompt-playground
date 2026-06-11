@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnabledAdapters } from "@/lib/adapters";
 import type { SiteEvent } from "@/lib/adapters/types";
-import { mergeEvents } from "@/lib/matching";
+import { isAncillaryEvent, mergeEvents } from "@/lib/matching";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   const events: SiteEvent[] = [];
   const siteErrors: string[] = [];
   results.forEach((r, i) => {
-    if (r.status === "fulfilled") events.push(...r.value);
+    if (r.status === "fulfilled") events.push(...r.value.filter((e) => !isAncillaryEvent(e.title)));
     else siteErrors.push(`${adapters[i].site}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`);
   });
 

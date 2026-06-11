@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS event_mappings (
   venue_name TEXT,
   match_confidence REAL,
   last_seen_at TEXT,
+  last_polled_at TEXT,
+  last_poll_note TEXT,
   UNIQUE(site, site_event_id)
 );
 
@@ -57,9 +59,21 @@ export function getDb(): Database.Database {
     const db = new Database(dbPath);
     db.pragma("journal_mode = WAL");
     db.exec(SCHEMA);
+    migrate(db);
     globalThis.__wcDb = db;
   }
   return globalThis.__wcDb;
+}
+
+// Databases created before these columns existed need them added in place.
+function migrate(db: Database.Database): void {
+  const cols = (db.prepare("PRAGMA table_info(event_mappings)").all() as { name: string }[]).map(
+    (c) => c.name,
+  );
+  if (!cols.includes("last_polled_at"))
+    db.exec("ALTER TABLE event_mappings ADD COLUMN last_polled_at TEXT");
+  if (!cols.includes("last_poll_note"))
+    db.exec("ALTER TABLE event_mappings ADD COLUMN last_poll_note TEXT");
 }
 
 export function nowUtc(): string {

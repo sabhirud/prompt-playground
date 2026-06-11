@@ -27,6 +27,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     .prepare(
       `SELECT em.id AS mappingId, em.site, em.site_url AS url, em.raw_title AS title,
               em.venue_name AS venueName, em.match_confidence AS confidence,
+              em.last_polled_at AS lastPolledAt, em.last_poll_note AS lastPollNote,
               ps.taken_at_utc AS takenAtUtc, ps.lowest_price AS lowest, ps.highest_price AS highest,
               ps.average_price AS average, ps.median_price AS median,
               ps.listing_count AS listingCount, ps.decent_price AS decentPrice,

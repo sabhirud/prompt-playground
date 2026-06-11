@@ -24,6 +24,14 @@ export function normalizeTeam(name: string): string {
   return TEAM_ALIASES[s] ?? s;
 }
 
+const ANCILLARY_TITLE =
+  /\b(parking|hospitality|suites?|lounge|packages?|fan fest(ival)?|tailgate|shuttle|watch party)\b/i;
+
+/** Parking passes, hospitality packages, etc. that ride along in site search results. */
+export function isAncillaryEvent(title: string): boolean {
+  return ANCILLARY_TITLE.test(title);
+}
+
 /** Remove tournament boilerplate so titles from different sites compare cleanly. */
 export function stripTournamentNoise(title: string): string {
   return title

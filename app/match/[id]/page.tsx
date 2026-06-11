@@ -19,6 +19,8 @@ interface SiteCard {
   decentPrice?: number;
   decentConfidence?: string;
   currency?: string;
+  lastPolledAt?: string;
+  lastPollNote?: string;
 }
 
 interface Detail {
@@ -51,6 +53,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
+  const [pollSummary, setPollSummary] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -69,9 +72,20 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
 
   async function pollNow() {
     setPolling(true);
+    setPollSummary(null);
     try {
-      await fetch("/api/poll", { method: "POST" });
+      const res = await fetch("/api/poll", { method: "POST" });
+      const result = await res.json();
+      const noData = (result.errors ?? []).length;
+      setPollSummary(
+        `Recorded ${result.inserted} price snapshot${result.inserted === 1 ? "" : "s"}` +
+          (noData
+            ? ` — ${noData} event listing${noData === 1 ? "" : "s"} had no price data from the site`
+            : ""),
+      );
       await load();
+    } catch (e) {
+      setPollSummary(`Poll failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setPolling(false);
     }
@@ -100,6 +114,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
           {polling ? "Polling…" : "Refresh prices now"}
         </button>
       </div>
+      {pollSummary && <p className="muted">{pollSummary}</p>}
       <div className="grid">
         {sites.map((s) => (
           <div key={s.mappingId} className={`card${bestSite?.mappingId === s.mappingId ? " best" : ""}`}>
@@ -116,7 +131,13 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
               {s.decentConfidence ? ` · ${s.decentConfidence} confidence` : ""}
             </div>
             <div className="muted">
-              {s.takenAtUtc ? `as of ${new Date(s.takenAtUtc).toLocaleString()}` : "no snapshot yet"}
+              {s.takenAtUtc
+                ? `as of ${new Date(s.takenAtUtc).toLocaleString()}`
+                : s.lastPolledAt
+                  ? `${s.lastPollNote ?? "no price data"} (checked ${new Date(
+                      s.lastPolledAt,
+                    ).toLocaleString()})`
+                  : "not polled yet"}
             </div>
             {s.url && (
               <p>

@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { SiteEvent } from "../adapters/types";
-import { extractTeams, mergeEvents, normalizeTeam } from "../matching";
+import { extractTeams, isAncillaryEvent, mergeEvents, normalizeTeam } from "../matching";
+
+describe("isAncillaryEvent", () => {
+  it("flags parking, hospitality, and package listings", () => {
+    expect(isAncillaryEvent("FIFA World Cup: Croatia vs England - PARKING")).toBe(true);
+    expect(isAncillaryEvent("World Cup 2026 Match 30 Hospitality Package")).toBe(true);
+    expect(isAncillaryEvent("AT&T Stadium Suites: Croatia vs England")).toBe(true);
+  });
+
+  it("keeps actual match listings", () => {
+    expect(isAncillaryEvent("FIFA World Cup 2026: Croatia vs England")).toBe(false);
+    expect(isAncillaryEvent("Match 30: Croatia vs England")).toBe(false);
+  });
+});
 
 describe("normalizeTeam", () => {
   it("maps aliases to canonical names", () => {

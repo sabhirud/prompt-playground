@@ -73,6 +73,16 @@ estimate, clearly labeled in the UI:
 | `POST /api/poll` | Trigger a price snapshot poll immediately |
 | `POST /api/dev/snapshots` | Inject backdated snapshots for testing (dev only, or `DEV_TOOLS=1`) |
 
+## Troubleshooting: "no price data"
+
+Both APIs return events without price data for many World Cup matches —
+SeatGeek when an event has no active resale listings yet, Ticketmaster when the
+event record carries no `priceRanges` (common for FIFA-controlled sales). The
+poller can only record what the sites expose. Each site card shows the outcome
+of the last poll attempt (e.g. "site returned no price data (checked …)"), and
+the "Refresh prices now" button reports how many snapshots were recorded.
+`POST /api/poll` returns the same detail per event listing.
+
 ## Testing
 
 ```bash
